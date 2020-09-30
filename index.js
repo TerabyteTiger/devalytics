@@ -97,6 +97,9 @@ function processData() {
             .set(data, { merge: true });
         }
       }
+    })
+    .then(async function (response) {
+      console.log("Setting Meta");
       // Set a "meta" document catch-all
       devCollection.doc("meta").set(
         {
@@ -105,12 +108,35 @@ function processData() {
         { merge: true }
       );
     })
+    .finally(() => {
+      console.log("async finished");
+    })
     .catch(function (error) {
       // handle error 👎
       console.log(error);
     });
 }
 
+async function checkDailyRun() {
+  // @ Return 'true' if processData() should run
+  const metaDoc = await devCollection.doc("meta").get();
+
+  if (!metaDoc.exists) {
+    return true;
+  } else {
+    console.log(metaDoc.data());
+    if (metaDoc.data().updatedOn == now) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+}
+
 // Call Fuctions
-processData();
-console.log("done");
+checkDailyRun().then((result) => {
+  console.log(result);
+  if (result) {
+    processData();
+  }
+});
