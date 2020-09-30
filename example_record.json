@@ -1,0 +1,11 @@
+{
+  "title": "Post title",
+  "url": "https://dev.to/slug",
+  "dates": ["9/1", "9/2", "9/3"],
+  "viewsDaily": [15, 25, 12],
+  "viewsTotal": [15, 40, 52],
+  "commentsDaily": [0, 1, 3],
+  "commentsTotal": [0, 1, 3],
+  "reactionsDaily": [0, 15, 34],
+  "reactionsTotal": [0, 15, 49]
+}
