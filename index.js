@@ -13,6 +13,29 @@ const config = {
 const firebase = require("firebase/app");
 require("firebase/firestore");
 
+// Service Account
+const admin = require("firebase-admin");
+
+const serviceAccount = {
+  type: process.env.SA_type,
+  project_id: process.env.SA_project_id,
+  private_key_id: process.env.SA_private_key_id,
+  private_key: process.env.SA_private_key.replace(/\\n/g, "\n"),
+  client_email: process.env.SA_client_email,
+  client_id: process.env.SA_client_id,
+  auth_uri: process.env.SA_auth_uri,
+  token_uri: process.env.SA_token_uri,
+  auth_provider_x509_cert_url: process.env.SA_auth_provider_x509_cert_url,
+  client_x509_cert_url: process.env.SA_client_x509_cert_url,
+};
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://dev-to-daily-stats.firebaseio.com",
+});
+
+let db = admin.firestore();
+
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_KEY,
   authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -26,7 +49,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // utils
-const db = firebase.firestore();
+// const db = firebase.firestore();
 
 // collections
 const devCollection = db.collection("dev");
