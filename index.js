@@ -35,77 +35,82 @@ const devCollection = db.collection("dev");
 const now = new Date().toLocaleDateString();
 
 // Loop over Array of articles
-axios
-  .get("https://dev.to/api/articles/me/published", config)
-  .then(async function (response) {
-    // handle success 👍
-    // console.log(response.data[0]);
-    let i;
-    for (i = 0; i < response.data.length; i++) {
-      let article = response.data[i];
-      const articleRef = devCollection.doc("" + article.id);
-      const doc = await articleRef.get();
-      if (!doc.exists) {
-        // Process a new document here
-        const data = {
-          title: article.title,
-          url: article.url,
-          dates: [now],
-          viewsDaily: [article.page_views_count],
-          viewsTotal: [article.page_views_count],
-          commentsDaily: [article.comments_count],
-          commentsTotal: [article.comments_count],
-          reactionsDaily: [article.public_reactions_count],
-          reactionsTotal: [article.public_reactions_count],
-        };
+function processData() {
+  axios
+    .get("https://dev.to/api/articles/me/published", config)
+    .then(async function (response) {
+      // handle success 👍
+      // console.log(response.data[0]);
+      let i;
+      for (i = 0; i < response.data.length; i++) {
+        let article = response.data[i];
+        const articleRef = devCollection.doc("" + article.id);
+        const doc = await articleRef.get();
+        if (!doc.exists) {
+          // Process a new document here
+          const data = {
+            title: article.title,
+            url: article.url,
+            dates: [now],
+            viewsDaily: [article.page_views_count],
+            viewsTotal: [article.page_views_count],
+            commentsDaily: [article.comments_count],
+            commentsTotal: [article.comments_count],
+            reactionsDaily: [article.public_reactions_count],
+            reactionsTotal: [article.public_reactions_count],
+          };
 
-        const res = await devCollection.doc("" + article.id).set(data);
-      } else {
-        // Update existing document
-        let data = {
-          ...doc.data(),
-        };
+          const res = await devCollection.doc("" + article.id).set(data);
+        } else {
+          // Update existing document
+          let data = {
+            ...doc.data(),
+          };
 
-        // Add today's data
-        // Views 👀
-        data.viewsTotal.push(article.page_views_count);
-        data.viewsDaily.push(
-          data.viewsTotal[data.viewsTotal.length - 1] -
-            data.viewsTotal[data.viewsTotal.length - 2]
-        );
+          // Add today's data
+          // Views 👀
+          data.viewsTotal.push(article.page_views_count);
+          data.viewsDaily.push(
+            data.viewsTotal[data.viewsTotal.length - 1] -
+              data.viewsTotal[data.viewsTotal.length - 2]
+          );
 
-        // Comments 💬
-        data.commentsTotal.push(article.comments_count);
-        data.commentsDaily.push(
-          data.commentsTotal[data.commentsTotal.length - 1] -
-            data.commentsTotal[data.commentsTotal.length - 2]
-        );
+          // Comments 💬
+          data.commentsTotal.push(article.comments_count);
+          data.commentsDaily.push(
+            data.commentsTotal[data.commentsTotal.length - 1] -
+              data.commentsTotal[data.commentsTotal.length - 2]
+          );
 
-        // Reactions 🦄
-        data.reactionsTotal.push(article.public_reactions_count);
-        data.reactionsDaily.push(
-          data.reactionsTotal[data.reactionsTotal.length - 1] -
-            data.reactionsTotal[data.reactionsTotal.length - 2]
-        );
+          // Reactions 🦄
+          data.reactionsTotal.push(article.public_reactions_count);
+          data.reactionsDaily.push(
+            data.reactionsTotal[data.reactionsTotal.length - 1] -
+              data.reactionsTotal[data.reactionsTotal.length - 2]
+          );
 
-        // Add date
-        data.dates.push(now);
+          // Add date
+          data.dates.push(now);
 
-        const res = await devCollection
-          .doc("" + article.id)
-          .set(data, { merge: true });
+          const res = await devCollection
+            .doc("" + article.id)
+            .set(data, { merge: true });
+        }
       }
-    }
-  })
-  .catch(function (error) {
-    // handle error 👎
-    console.log(error);
-  });
+      // Set a "meta" document catch-all
+      devCollection.doc("meta").set(
+        {
+          updatedOn: now,
+        },
+        { merge: true }
+      );
+    })
+    .catch(function (error) {
+      // handle error 👎
+      console.log(error);
+    });
+}
 
-// Set a "meta" document catch-all
-devCollection.doc("meta").set(
-  {
-    updatedOn: now,
-  },
-  { merge: true }
-);
+// Call Fuctions
+processData();
+console.log("done");
